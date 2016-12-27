@@ -12,6 +12,18 @@ set foldmethod=indent
 set foldlevel=99
 nnoremap <Space> za
 
+" always show this statusline
+set statusline=
+set statusline+=%n\ 
+set statusline+=%{&ff}
+set statusline+=%y
+set statusline+=\ %<%F
+set statusline+=%m
+set statusline+=%=%5l/%L
+set statusline+=%4v\ 
+set statusline+=0x%04B\ 
+set laststatus=2
+
 " vimplug plugin manager
 call plug#begin('$HOME\vimfiles\plugged')
 Plug 'scrooloose/nerdtree'
