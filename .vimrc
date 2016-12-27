@@ -1,6 +1,6 @@
 set enc=utf-8
 
-# tabs
+" tabs
 nnoremap <Tab> :tabnext<CR>
 nnoremap <S-Tab> :tabprev<CR>
 
