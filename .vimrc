@@ -30,6 +30,8 @@ set shiftwidth=4    " spaces for indentation
 set shiftround
 set expandtab
 set backspace=indent,eol,start
+set autoindent
+set smartindent
 
 " always show this statusline
 set statusline=
@@ -52,13 +54,6 @@ set fo-=t " nowrap while typing
 "highlight ColorColumn ctermbg=7
 highlight LineNr ctermfg=DarkGrey
 
-" vimplug plugin manager
-call plug#begin('$HOME\vimfiles\plugged')
-Plug 'scrooloose/nerdtree'
-call plug#end()
-
-"autocmd vimenter * NERDTree
-
 " fuzzy buffer finder
 nnoremap <C-L> :CtrlPBuffer<CR>
 
@@ -69,9 +64,22 @@ imap <C-Space> <Esc><Space>
 imap <C-S-Space> <Esc><S-Space>
 
 filetype on
+filetype plugin on
+filetype indent on
+
+function! AppendIfEmpty()
+    let str = getline(".")
+    if matchstr(str, '[^\s]\+') != ""
+        "call feedkeys("o!!line!!")
+        normal o!!line!!
+    else
+        "call feedkeys("A!!line!!")
+        normal A!!line!!
+    endif
+endfunction
 
 " python
-function PyAddImport()
+function! PyAddImport()
     normal gg
     let word = expand("<cword>")
     while word == "import"
@@ -82,25 +90,24 @@ function PyAddImport()
 endfunction
 
 augroup python
-    au FileType python nnoremap ;f idef !!name!!(!!params!!):<CR>!!pass!!<Esc>?!![a-z]*!!<CR>3Nv/!!<CR>lc
-    au FileType python nnoremap ;c iclass !!name!!(!!params!!):<CR>!!pass!!<Esc>?!![a-z]*!!<CR>3Nv/!!<CR>lc
+    au FileType python nmap ;f :call AppendIfEmpty()<CR><S-Space>def !!name!!(!!params!!):<CR>!!pass!!<Esc>?!![a-z]*!!<CR>3Nv/!!<CR>lc
+    au FileType python nnoremap ;c :call AppendIfEmpty()<CR><S-Space>class !!name!!(!!params!!):<CR>!!pass!!<Esc>?!![a-z]*!!<CR>3Nv/!!<CR>lc
     au FileType python nmap ;i :call PyAddImport()<CR><Space>
 augroup END
 
 " c
-function CAddImport()
-    normal gg
-    let word = expand("<cword>")
-    while word == "include"
-        normal j
-        let word = expand("<cword>")
-    endwhile
-    normal O#include <!!header.h!!>
+function! CAddImport()
+    normal G
+    let match = search("#include", "b")
+    if match == 0
+        normal gg
+    endif
+    normal o#include <!!header.h!!>
 endfunction
 
 augroup c
-    au FileType c nnoremap ;f i!!rettype!! !!name!!(!!params!!) {<CR>!!body!!<CR>}<Esc>?!![a-z.]*!!<CR>4Nv/!!<CR>lc
-    au FileType c nmap ;i :call CAddImport()<CR><Space>
+    au FileType c nmap ;f :call AppendIfEmpty()<CR><S-Space>!!rettype!! !!name!!(!!params!!) {<CR>!!body!!<CR>}<Esc>?!![a-z.]*!!<CR>4Nv/!!<CR>lc
+    au FileType c nmap ;i :call CAddImport()<CR><S-Space>
 augroup END
 
 " surround
