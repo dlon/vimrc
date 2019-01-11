@@ -1,7 +1,7 @@
 set enc=utf-8
 
 " auto-reload vimrc
-"autocmd! bufwritepost .vimrc :so %
+autocmd! bufwritepost .vimrc :so %
 
 " tabs
 nnoremap <Tab> :tabnext<CR>
@@ -11,6 +11,13 @@ nnoremap <C-N> :tabnew<CR>
 syntax enable
 set hls
 
+" to unset: :set noic
+set ignorecase
+set smartcase
+
+" o $MYVIMRC doesn't work for some reason
+command! RC exec ":o " . $MYVIMRC
+
 " standard copy and paste
 set clipboard=unnamed
 
@@ -18,10 +25,11 @@ set clipboard=unnamed
 vnoremap <Tab> >gv
 vnoremap <S-Tab> <gv
 
-" allow folding based on indent
+" folding
 set foldmethod=indent
 set foldlevel=99
-nnoremap f za
+nnoremap + zO
+nnoremap - zC
 
 " indentation
 set tabstop=4       " spaces for tab
@@ -55,13 +63,18 @@ set fo-=t " nowrap while typing
 highlight LineNr ctermfg=DarkGrey
 
 " fuzzy buffer finder
-nnoremap <C-L> :CtrlPBuffer<CR>
+nnoremap <C-B> :CtrlPBuffer<CR>
+
+" buffers
+nnoremap ;n :bn<CR>
+nnoremap ;p :bp<CR>
 
 " snippets
 nnoremap <Space> /!![a-z.]*!!<CR>v/!!<CR>lc
 nnoremap <S-Space> ?!![a-z.]*!!<CR>v/!!<CR>lc
 imap <C-Space> <Esc><Space>
 imap <C-S-Space> <Esc><S-Space>
+imap <C-;> <Esc>;
 
 filetype on
 filetype plugin on
@@ -89,11 +102,9 @@ function! PyAddImport()
     normal Oimport !!module!!
 endfunction
 
-augroup python
-    au FileType python nmap ;f :call AppendIfEmpty()<CR><S-Space>def !!name!!(!!params!!):<CR>!!pass!!<Esc>?!![a-z]*!!<CR>3Nv/!!<CR>lc
-    au FileType python nnoremap ;c :call AppendIfEmpty()<CR><S-Space>class !!name!!(!!params!!):<CR>!!pass!!<Esc>?!![a-z]*!!<CR>3Nv/!!<CR>lc
-    au FileType python nmap ;i :call PyAddImport()<CR><Space>
-augroup END
+au! FileType python nmap ;f :call AppendIfEmpty()<CR><S-Space>def !!name!!(!!params!!):<CR>!!pass!!<Esc>?!![a-z]*!!<CR>3Nv/!!<CR>lc
+au! FileType python nnoremap ;c :call AppendIfEmpty()<CR><S-Space>class !!name!!(!!params!!):<CR>!!pass!!<Esc>?!![a-z]*!!<CR>3Nv/!!<CR>lc
+au! FileType python nmap ;i :call PyAddImport()<CR><Space>
 
 " c
 function! CAddImport()
@@ -105,10 +116,31 @@ function! CAddImport()
     normal o#include <!!header.h!!>
 endfunction
 
-augroup c
-    au FileType c nmap ;f :call AppendIfEmpty()<CR><S-Space>!!rettype!! !!name!!(!!params!!) {<CR>!!body!!<CR>}<Esc>?!![a-z.]*!!<CR>4Nv/!!<CR>lc
-    au FileType c nmap ;i :call CAddImport()<CR><S-Space>
-augroup END
+au! FileType c nmap ;f :call AppendIfEmpty()<CR><S-Space>!!rettype!! !!name!!(!!params!!) {<CR>!!body!!<CR>}<Esc>?!![a-z.]*!!<CR>4Nv/!!<CR>lc
+au! FileType c nmap ;i :call CAddImport()<CR><S-Space>
+
+" html
+function! HtmlAddTag()
+    normal a<tag>!!content!!</tag>
+    normal 2F<l
+    redraw
+    let name=input("Tag: ")
+    exec "normal ce" . name
+endfunction
+
+au! FileType html nmap ;t :call HtmlAddTag()<CR>
+
+" java
+function! NewJavaFile()
+    let javaTemplate = expand("$HOME/vimfiles/templates/file.java")
+    exec ":0r " . javaTemplate
+    exec ":%s/!!classname!!/" . expand("%:r:t") . "/g"
+    redraw
+    normal gg
+    call feedkeys("\<Space>")
+endfunction
+autocmd! BufNewFile *.java call NewJavaFile()
+autocmd! FileType java nmap ;f :call AppendIfEmpty()<CR><S-Space>!!rettype!! !!name!!(!!params!!) {<CR>!!body!!<CR>}<Esc>?!![a-z.]*!!<CR>4Nv/!!<CR>lc
 
 " surround
 vnoremap " "sc"<C-r>s"<Esc>
